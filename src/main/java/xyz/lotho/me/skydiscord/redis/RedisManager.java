@@ -51,8 +51,6 @@ public class RedisManager {
             this.subscriberPool = this.publisherPool = new JedisPool(new JedisPoolConfig(), host, port, 30_000, this.password.isEmpty() ? null : this.password, 0, null);
             this.subscriberPool.getResource();
 
-            this.setupPubSub();
-
             try {
                 Thread.sleep(1500L);
             } catch (Exception e) {
@@ -70,44 +68,6 @@ public class RedisManager {
 
             this.lastConnect = System.currentTimeMillis();
         }
-    }
-
-    public void setupPubSub() {
-        this.pubsub = new JedisPubSub() {
-            @Override
-            public void onMessage(String channel, String message) {
-                if (!channel.equalsIgnoreCase(RedisManager.this.channel)) return;
-                JsonObject jsonObject = new JsonObject();
-
-                try {
-                    jsonObject = PARSER.parse(message).getAsJsonObject();
-                } catch (JsonSyntaxException exception) {
-                    exception.printStackTrace();
-                }
-
-                /*
-                String id = jsonObject.get("id").getAsString();
-                String content = jsonObject.get("content").getAsString();
-
-                switch (id) {
-                    case "globalServerAnnouncement":
-                        Utilities.getOnline().forEach((player) -> player.sendMessage(Utilities.colorize(content)));
-                        break;
-                }
-                 */
-            }
-        };
-
-        ForkJoinPool.commonPool().execute(() -> {
-            try (Jedis jedis = this.subscriberPool.getResource()) {
-                jedis.subscribe(this.pubsub, this.channel);
-            } catch (Exception exception) {
-                exception.printStackTrace();
-
-                this.subscriberPool = null;
-                this.publisherPool = null;
-            }
-        });
     }
 
     public void sendRequest(String channel, JsonObject object) {

@@ -4,3 +4,6 @@ main: xyz.lotho.me.skydiscord.SkyDiscord
 api-version: 1.8.8
 authors: [ Lotho ]
 description: A discord linking system using Redis.
+
+commands:
+  discord:
